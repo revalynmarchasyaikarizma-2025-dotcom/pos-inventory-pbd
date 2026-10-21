@@ -1,99 +1,123 @@
 <?php
 include 'koneksi.php';
 
-// Query relasi user dan role
-$query = mysqli_query($koneksi, "SELECT user.*, role.nama_role FROM user JOIN role ON user.idrole = role.idrole ORDER BY iduser ASC");
+// 1. PROSES SIMPAN / TAMBAH DATA
+if (isset($_POST['simpan'])) {
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+    $idrole   = $_POST['idrole'];
+    
+    mysqli_query($koneksi, "INSERT INTO user (username, password, idrole) VALUES ('$username', '$password', '$idrole')");
+    header("Location: user.php");
+}
+
+// 2. PROSES UPDATE / EDIT DATA
+if (isset($_POST['update'])) {
+    $id       = $_POST['iduser'];
+    $username = $_POST['username'];
+    $idrole   = $_POST['idrole'];
+    
+    if (!empty($_POST['password'])) {
+        $password = $_POST['password'];
+        mysqli_query($koneksi, "UPDATE user SET username='$username', password='$password', idrole='$idrole' WHERE iduser='$id'");
+    } else {
+        mysqli_query($koneksi, "UPDATE user SET username='$username', idrole='$idrole' WHERE iduser='$id'");
+    }
+    header("Location: user.php");
+}
+
+// 3. PROSES HAPUS DATA
+if (isset($_GET['action']) && $_GET['action'] == 'hapus') {
+    $id = $_GET['id'];
+    mysqli_query($koneksi, "DELETE FROM user WHERE iduser='$id'");
+    header("Location: user.php");
+}
+
+// CEK MODE EDIT
+$edit_data = null;
+if (isset($_GET['action']) && $_GET['action'] == 'edit') {
+    $id = $_GET['id'];
+    $query_edit = mysqli_query($koneksi, "SELECT * FROM user WHERE iduser='$id'");
+    $edit_data  = mysqli_fetch_assoc($query_edit);
+}
 ?>
 
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data User - Sistem Informasi</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { background-color: #f8f9fa; }
-        .sidebar { min-height: 100vh; background-color: #2c3e50; }
-        .sidebar a { color: #bdc3c7; text-decoration: none; display: block; padding: 12px 20px; }
-        .sidebar a:hover, .sidebar a.active { background-color: #34495e; color: #fff; }
-    </style>
+    <title>Master User</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
-<body>
+<body class="container mt-4">
 
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar Menu Navigasi -->
-        <nav class="col-md-2 d-none d-md-block sidebar p-0">
-            <div class="p-3 text-white text-center fw-bold fs-5 border-bottom border-secondary">
-                <i class="fa-solid fa-store me-2"></i>POS & Inventory
-            </div>
-            <div class="mt-3">
-                <a href="dashboard.php"><i class="fa-solid fa-gauge me-2"></i> Dashboard</a>
-                <div class="text-secondary ps-3 my-2 small text-uppercase fw-bold">Master Data</div>
-                <a href="role.php"><i class="fa-solid fa-user-shield me-2"></i> Data Role</a>
-                <a href="user.php" class="active"><i class="fa-solid fa-users me-2"></i> Data User</a>
-                <a href="satuan.php"><i class="fa-solid fa-boxes-packing me-2"></i> Data Satuan</a>
-                <a href="barang.php"><i class="fa-solid fa-box me-2"></i> Data Barang</a>
-                <a href="vendor.php"><i class="fa-solid fa-truck-field me-2"></i> Data Vendor</a>
-                <a href="margin.php"><i class="fa-solid fa-percent me-2"></i> Margin Penjualan</a>
-                <div class="text-secondary ps-3 my-2 small text-uppercase fw-bold">Transaksi</div>
-                <a href="pengadaan.php"><i class="fa-solid fa-cart-shopping me-2"></i> Pengadaan</a>
-                <a href="penerimaan.php"><i class="fa-solid fa-boxes-stacked me-2"></i> Penerimaan</a>
-                <a href="penjualan.php"><i class="fa-solid fa-cash-register me-2"></i> Penjualan</a>
-                <a href="retur.php"><i class="fa-solid fa-rotate-left me-2"></i> Retur Barang</a>
-                <a href="kartu_stok.php"><i class="fa-solid fa-clipboard-list me-2"></i> Kartu Stok</a>
-            </div>
-        </nav>
+    <h2>Data Master User</h2>
 
-        <!-- Main Content Area -->
-        <main class="col-md-10 ms-sm-auto p-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-2 pb-2 mb-4 border-bottom">
-                <h1 class="h2">Master Data User</h1>
-                <a href="tambah_user.php" class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i> Tambah User</a>
-            </div>
-
-            <!-- Tabel Data User -->
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <table class="table table-hover table-striped align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>ID User</th>
-                                <th>Username</th>
-                                <th>Role</th>
-                                <th class="text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php 
-                            if(mysqli_num_rows($query) > 0) {
-                                while($data = mysqli_fetch_assoc($query)) { 
-                            ?>
-                            <tr>
-                                <td><?= $data['iduser']; ?></td>
-                                <td><?= $data['username']; ?></td>
-                                <td><span class="badge bg-info text-dark"><?= $data['nama_role']; ?></span></td>
-                                <td class="text-center">
-                                    <a href="edit_user.php?id=<?= $data['iduser']; ?>" class="btn btn-warning btn-sm me-1"><i class="fa-solid fa-pen"></i> Edit</a>
-                                    <a href="hapus_user.php?id=<?= $data['iduser']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus user ini?')"><i class="fa-solid fa-trash"></i> Hapus</a>
-                                </td>
-                            </tr>
-                            <?php 
-                                } 
-                            } else {
-                                echo "<tr><td colspan='4' class='text-center text-muted'>Belum ada data user.</td></tr>";
-                            }
-                            ?>
-                        </tbody>
-                    </table>
+    <div class="card my-3">
+        <div class="card-body">
+            <form method="POST" action="user.php">
+                <input type="hidden" name="iduser" value="<?= $edit_data['iduser'] ?? '' ?>">
+                
+                <div class="mb-3">
+                    <label>Username</label>
+                    <input type="text" name="username" class="form-control" value="<?= $edit_data['username'] ?? '' ?>" required>
                 </div>
-            </div>
-        </main>
-    </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                <div class="mb-3">
+                    <label>Password <?= $edit_data ? '<small class="text-muted">(Kosongkan jika tidak diubah)</small>' : '' ?></label>
+                    <input type="password" name="password" class="form-control" <?= $edit_data ? '' : 'required' ?>>
+                </div>
+
+                <div class="mb-3">
+                    <label>Role</label>
+                    <select name="idrole" class="form-control" required>
+                        <option value="">-- Pilih Role --</option>
+                        <?php
+                        $roles = mysqli_query($koneksi, "SELECT * FROM role");
+                        while ($r = mysqli_fetch_assoc($roles)) :
+                            $selected = ($edit_data && $edit_data['idrole'] == $r['idrole']) ? 'selected' : '';
+                        ?>
+                            <option value="<?= $r['idrole']; ?>" <?= $selected; ?>><?= $r['nama_role']; ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+
+                <?php if ($edit_data): ?>
+                    <button type="submit" name="update" class="btn btn-warning">Update User</button>
+                    <a href="user.php" class="btn btn-secondary">Batal</a>
+                <?php else: ?>
+                    <button type="submit" name="simpan" class="btn btn-primary">Tambah User</button>
+                <?php endif; ?>
+            </form>
+        </div>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            $no = 1;
+            $data = mysqli_query($koneksi, "SELECT * FROM v_user");
+            while ($row = mysqli_fetch_assoc($data)) :
+            ?>
+            <tr>
+                <td><?= $no++; ?></td>
+                <td><?= $row['username']; ?></td>
+                <td><?= $row['nama_role']; ?></td>
+                <td>
+                    <a href="user.php?action=edit&id=<?= $row['iduser']; ?>" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="user.php?action=hapus&id=<?= $row['iduser']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus?')">Hapus</a>
+                </td>
+            </tr>
+            <?php endwhile; ?>
+        </tbody>
+    </table>
+
 </body>
 </html>
