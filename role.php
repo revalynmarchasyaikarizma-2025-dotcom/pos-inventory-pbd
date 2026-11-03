@@ -1,94 +1,85 @@
 <?php
 include 'koneksi.php';
 
-// 1. PROSES SIMPAN / TAMBAH DATA
-if (isset($_POST['simpan'])) {
-    $nama_role = $_POST['nama_role'];
-    mysqli_query($koneksi, "INSERT INTO role (nama_role) VALUES ('$nama_role')");
-    header("Location: role.php");
-}
-
-// 2. PROSES UPDATE / EDIT DATA
-if (isset($_POST['update'])) {
-    $id = $_POST['id_role'];
-    $nama_role = $_POST['nama_role'];
-    mysqli_query($koneksi, "UPDATE role SET nama_role='$nama_role' WHERE id_role='$id'");
-    header("Location: role.php");
-}
-
-// 3. PROSES HAPUS DATA
-if (isset($_GET['action']) && $_GET['action'] == 'hapus') {
-    $id = $_GET['id'];
-    mysqli_query($koneksi, "DELETE FROM role WHERE id_role='$id'");
-    header("Location: role.php");
-}
-
-// CEK APAKAH LAGI MODE EDIT
-$edit_data = null;
-if (isset($_GET['action']) && $_GET['action'] == 'edit') {
-    $id = $_GET['id'];
-    $query_edit = mysqli_query($koneksi, "SELECT * FROM role WHERE id_role='$id'");
-    $edit_data = mysqli_fetch_assoc($query_edit);
+// Ambil data dari View database
+$query_role = mysqli_query($koneksi, "SELECT * FROM view_master_role");
+if (!$query_role) {
+    $query_role = mysqli_query($koneksi, "SELECT * FROM role");
 }
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Master Role</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <meta charset="UTF-8">
+    <title>Data Master Role</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        body { display: flex; min-height: 100vh; background-color: #fcf4f7; }
+
+        .sidebar { width: 250px; background-color: #d81b60; color: #fff; padding: 20px 0; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar h2 { text-align: center; font-size: 20px; margin-bottom: 25px; color: #fff; font-weight: bold; }
+        .sidebar ul { list-style: none; }
+        .sidebar ul li a { display: block; padding: 12px 20px; color: #f8bbd0; text-decoration: none; font-size: 14px; border-bottom: 1px solid #e91e63; transition: 0.3s; }
+        .sidebar ul li a:hover { background-color: #c2185b; color: #fff; padding-left: 25px; }
+        .sidebar .menu-header { padding: 12px 20px 5px; font-size: 11px; text-transform: uppercase; color: #f48fb1; font-weight: bold; }
+
+        .content { flex: 1; padding: 30px; }
+        h1 { font-size: 26px; color: #880e4f; margin-bottom: 20px; }
+
+        table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ffb6c1; }
+        th { background-color: #d81b60; color: white; }
+        tr:hover { background-color: #ffe4e1; }
+    </style>
 </head>
-<body class="container mt-4">
+<body>
 
-    <h2>Data Master Role</h2>
+    <div class="sidebar">
+        <h2>PBD PROJECT</h2>
+        <ul>
+            <li><a href="dashboard.php"> Dashboard</a></li>
+            
+            <div class="menu-header">Data Master</div>
+            <li><a href="role.php" style="background-color: #c2185b; color: #fff;"> Data Role</a></li>
+            <li><a href="user.php"> Data User</a></li>
+            <li><a href="satuan.php"> Data Satuan</a></li>
+            <li><a href="vendor.php"> Data Vendor</a></li>
+            <li><a href="barang.php"> Data Barang</a></li>
+            <li><a href="margin.php"> Data Margin</a></li>
 
-    <!-- FORM TAMBAH / EDIT -->
-    <div class="card my-3">
-        <div class="card-body">
-            <form method="POST" action="role.php">
-                <input type="hidden" name="id_role" value="<?= $edit_data['id_role'] ?? '' ?>">
-                
-                <div class="mb-3">
-                    <label>Nama Role</label>
-                    <input type="text" name="nama_role" class="form-control" value="<?= $edit_data['nama_role'] ?? '' ?>" required>
-                </div>
-
-                <?php if ($edit_data): ?>
-                    <button type="submit" name="update" class="btn btn-warning">Update Role</button>
-                    <a href="role.php" class="btn btn-secondary">Batal</a>
-                <?php else: ?>
-                    <button type="submit" name="simpan" class="btn btn-primary">Tambah Role</button>
-                <?php endif; ?>
-            </form>
-        </div>
+            <div class="menu-header">Transaksi & Logic</div>
+            <li><a href="penjualan.php"> Input Penjualan (SP)</a></li>
+            <li><a href="function_omset.php"> Laporan Omset (Function)</a></li>
+            <li><a href="trigger_stok.php"> Log Kartu Stok (Trigger)</a></li>
+            
+            <div class="menu-header">Laporan</div>
+            <li><a href="views.php"> 15 View Laporan</a></li>
+        </ul>
     </div>
 
-    <!-- TABEL MENAMPILKAN DATA -->
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Nama Role</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php
-            $no = 1;
-            $data = mysqli_query($koneksi, "SELECT * FROM role");
-            while ($row = mysqli_fetch_assoc($data)) :
-            ?>
-            <tr>
-                <td><?= $no++; ?></td>
-                <td><?= $row['nama_role']; ?></td>
-                <td>
-                    <a href="role.php?action=edit&id=<?= $row['id_role']; ?>" class="btn btn-sm btn-warning">Edit</a>
-                    <a href="role.php?action=hapus&id=<?= $row['id_role']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus?')">Hapus</a>
-                </td>
-            </tr>
-            <?php endwhile; ?>
-        </tbody>
-    </table>
+    <div class="content">
+        <h1>Data Master Role</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 20%;">No</th>
+                    <th style="width: 80%;">Nama Role</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php 
+                $no = 1;
+                while ($row = mysqli_fetch_assoc($query_role)): 
+                ?>
+                <tr>
+                    <td><?= $no++; ?></td>
+                    <td><?= htmlspecialchars($row['nama_role']); ?></td>
+                </tr>
+                <?php endwhile; ?>
+            </tbody>
+        </table>
+    </div>
 
 </body>
 </html>

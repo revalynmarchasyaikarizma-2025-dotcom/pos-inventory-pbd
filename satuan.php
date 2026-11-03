@@ -1,87 +1,84 @@
 <?php
 include 'koneksi.php';
 
-if (isset($_POST['simpan'])) {
-    $nama_satuan = $_POST['nama_satuan'];
-    mysqli_query($koneksi, "INSERT INTO satuan (nama_satuan, status) VALUES ('$nama_satuan', 1)");
-    header("Location: satuan.php");
-}
-
-if (isset($_POST['update'])) {
-    $id          = $_POST['idsatuan'];
-    $nama_satuan = $_POST['nama_satuan'];
-    mysqli_query($koneksi, "UPDATE satuan SET nama_satuan='$nama_satuan' WHERE idsatuan='$id'");
-    header("Location: satuan.php");
-}
-
-if (isset($_GET['action']) && $_GET['action'] == 'hapus') {
-    $id = $_GET['id'];
-    mysqli_query($koneksi, "DELETE FROM satuan WHERE idsatuan='$id'");
-    header("Location: satuan.php");
-}
-
-$edit_data = null;
-if (isset($_GET['action']) && $_GET['action'] == 'edit') {
-    $id = $_GET['id'];
-    $query_edit = mysqli_query($koneksi, "SELECT * FROM satuan WHERE idsatuan='$id'");
-    $edit_data  = mysqli_fetch_assoc($query_edit);
+$query_satuan = mysqli_query($koneksi, "SELECT * FROM view_master_satuan");
+if (!$query_satuan) {
+    $query_satuan = mysqli_query($koneksi, "SELECT * FROM satuan");
 }
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Master Satuan</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <meta charset="UTF-8">
+    <title>Data Master Satuan</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        body { display: flex; min-height: 100vh; background-color: #fcf4f7; }
+
+        .sidebar { width: 250px; background-color: #d81b60; color: #fff; padding: 20px 0; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar h2 { text-align: center; font-size: 20px; margin-bottom: 25px; color: #fff; font-weight: bold; }
+        .sidebar ul { list-style: none; }
+        .sidebar ul li a { display: block; padding: 12px 20px; color: #f8bbd0; text-decoration: none; font-size: 14px; border-bottom: 1px solid #e91e63; transition: 0.3s; }
+        .sidebar ul li a:hover { background-color: #c2185b; color: #fff; padding-left: 25px; }
+        .sidebar .menu-header { padding: 12px 20px 5px; font-size: 11px; text-transform: uppercase; color: #f48fb1; font-weight: bold; }
+
+        .content { flex: 1; padding: 30px; }
+        h1 { font-size: 26px; color: #880e4f; margin-bottom: 20px; }
+
+        table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ffb6c1; }
+        th { background-color: #d81b60; color: white; }
+        tr:hover { background-color: #ffe4e1; }
+    </style>
 </head>
-<body class="container mt-4">
+<body>
 
-    <h2>Data Master Satuan</h2>
+    <div class="sidebar">
+        <h2>PBD PROJECT</h2>
+        <ul>
+            <li><a href="dashboard.php"> Dashboard</a></li>
+            
+            <div class="menu-header">Data Master</div>
+            <li><a href="role.php"> Data Role</a></li>
+            <li><a href="user.php"> Data User</a></li>
+            <li><a href="satuan.php" style="background-color: #c2185b; color: #fff;"> Data Satuan</a></li>
+            <li><a href="vendor.php"> Data Vendor</a></li>
+            <li><a href="barang.php"> Data Barang</a></li>
+            <li><a href="margin.php"> Data Margin</a></li>
 
-    <div class="card my-3">
-        <div class="card-body">
-            <form method="POST" action="satuan.php">
-                <input type="hidden" name="idsatuan" value="<?= $edit_data['idsatuan'] ?? '' ?>">
-                <div class="mb-3">
-                    <label>Nama Satuan</label>
-                    <input type="text" name="nama_satuan" class="form-control" value="<?= $edit_data['nama_satuan'] ?? '' ?>" required>
-                </div>
-
-                <?php if ($edit_data): ?>
-                    <button type="submit" name="update" class="btn btn-warning">Update Satuan</button>
-                    <a href="satuan.php" class="btn btn-secondary">Batal</a>
-                <?php else: ?>
-                    <button type="submit" name="simpan" class="btn btn-primary">Tambah Satuan</button>
-                <?php endif; ?>
-            </form>
-        </div>
+            <div class="menu-header">Transaksi & Logic</div>
+            <li><a href="penjualan.php"> Input Penjualan (SP)</a></li>
+            <li><a href="function_omset.php"> Laporan Omset (Function)</a></li>
+            <li><a href="trigger_stok.php"> Log Kartu Stok (Trigger)</a></li>
+            
+            <div class="menu-header">Laporan</div>
+            <li><a href="views.php"> 15 View Laporan</a></li>
+        </ul>
     </div>
 
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Nama Satuan</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php
-            $no = 1;
-            $data = mysqli_query($koneksi, "SELECT * FROM v_satuan");
-            while ($row = mysqli_fetch_assoc($data)) :
-            ?>
-            <tr>
-                <td><?= $no++; ?></td>
-                <td><?= $row['nama_satuan']; ?></td>
-                <td>
-                    <a href="satuan.php?action=edit&id=<?= $row['idsatuan']; ?>" class="btn btn-sm btn-warning">Edit</a>
-                    <a href="satuan.php?action=hapus&id=<?= $row['idsatuan']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus?')">Hapus</a>
-                </td>
-            </tr>
-            <?php endwhile; ?>
-        </tbody>
-    </table>
+    <div class="content">
+        <h1>Data Master Satuan</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 20%;">No</th>
+                    <th style="width: 80%;">Nama Satuan</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php 
+                $no = 1;
+                while ($row = mysqli_fetch_assoc($query_satuan)): 
+                ?>
+                <tr>
+                    <td><?= $no++; ?></td>
+                    <td><?= htmlspecialchars($row['nama_satuan']); ?></td>
+                </tr>
+                <?php endwhile; ?>
+            </tbody>
+        </table>
+    </div>
 
 </body>
 </html>

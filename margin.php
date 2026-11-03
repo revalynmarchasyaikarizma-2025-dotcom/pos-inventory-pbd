@@ -1,112 +1,91 @@
 <?php
 include 'koneksi.php';
 
-// SIMPAN
-if (isset($_POST['simpan'])) {
-    $persen = $_POST['persen'];
-    $iduser = $_POST['iduser'];
-    
-    mysqli_query($koneksi, "INSERT INTO margin_penjualan (persen, status, iduser) VALUES ('$persen', 1, '$iduser')");
-    header("Location: margin.php");
-}
-
-// UPDATE
-if (isset($_POST['update'])) {
-    $id     = $_POST['idmargin_penjualan'];
-    $persen = $_POST['persen'];
-    
-    mysqli_query($koneksi, "UPDATE margin_penjualan SET persen='$persen' WHERE idmargin_penjualan='$id'");
-    header("Location: margin.php");
-}
-
-// HAPUS
-if (isset($_GET['action']) && $_GET['action'] == 'hapus') {
-    $id = $_GET['id'];
-    mysqli_query($koneksi, "DELETE FROM margin_penjualan WHERE idmargin_penjualan='$id'");
-    header("Location: margin.php");
-}
-
-// EDIT
-$edit_data = null;
-if (isset($_GET['action']) && $_GET['action'] == 'edit') {
-    $id = $_GET['id'];
-    $query_edit = mysqli_query($koneksi, "SELECT * FROM margin_penjualan WHERE idmargin_penjualan='$id'");
-    $edit_data  = mysqli_fetch_assoc($query_edit);
+// Ambil data margin dari View (hanya memfilter margin 20%)
+$query_margin = mysqli_query($koneksi, "SELECT * FROM view_master_margin WHERE persen = 20");
+if (!$query_margin) {
+    $query_margin = mysqli_query($koneksi, "SELECT m.idmargin_penjualan, m.persen, m.status, u.username AS dibuat_oleh, m.created_at FROM margin_penjualan m JOIN user u ON m.iduser = u.iduser WHERE m.persen = 20");
 }
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Master Margin Penjualan</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <meta charset="UTF-8">
+    <title>Data Master Margin Penjualan</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        body { display: flex; min-height: 100vh; background-color: #fcf4f7; }
+
+        .sidebar { width: 250px; background-color: #d81b60; color: #fff; padding: 20px 0; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar h2 { text-align: center; font-size: 20px; margin-bottom: 25px; color: #fff; font-weight: bold; }
+        .sidebar ul { list-style: none; }
+        .sidebar ul li a { display: block; padding: 12px 20px; color: #f8bbd0; text-decoration: none; font-size: 14px; border-bottom: 1px solid #e91e63; transition: 0.3s; }
+        .sidebar ul li a:hover { background-color: #c2185b; color: #fff; padding-left: 25px; }
+        .sidebar .menu-header { padding: 12px 20px 5px; font-size: 11px; text-transform: uppercase; color: #f48fb1; font-weight: bold; }
+
+        .content { flex: 1; padding: 30px; }
+        h1 { font-size: 26px; color: #880e4f; margin-bottom: 20px; }
+
+        table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ffb6c1; }
+        th { background-color: #d81b60; color: white; }
+        tr:hover { background-color: #ffe4e1; }
+        .badge { background-color: #28a745; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+    </style>
 </head>
-<body class="container mt-4">
+<body>
 
-    <h2>Data Master Margin Penjualan</h2>
+    <div class="sidebar">
+        <h2>PBD PROJECT</h2>
+        <ul>
+            <li><a href="dashboard.php"> Dashboard</a></li>
+            
+            <div class="menu-header">Data Master</div>
+            <li><a href="role.php"> Data Role</a></li>
+            <li><a href="user.php"> Data User</a></li>
+            <li><a href="satuan.php"> Data Satuan</a></li>
+            <li><a href="vendor.php"> Data Vendor</a></li>
+            <li><a href="barang.php"> Data Barang</a></li>
+            <li><a href="margin.php" style="background-color: #c2185b; color: #fff;"> Data Margin</a></li>
 
-    <div class="card my-3">
-        <div class="card-body">
-            <form method="POST" action="margin.php">
-                <input type="hidden" name="idmargin_penjualan" value="<?= $edit_data['idmargin_penjualan'] ?? '' ?>">
-                
-                <div class="mb-3">
-                    <label>Persentase Margin (%)</label>
-                    <input type="number" step="0.1" name="persen" class="form-control" value="<?= $edit_data['persen'] ?? '' ?>" required>
-                </div>
-
-                <?php if (!$edit_data): ?>
-                <div class="mb-3">
-                    <label>User Pembuat</label>
-                    <select name="iduser" class="form-control" required>
-                        <option value="">-- Pilih User --</option>
-                        <?php
-                        $users = mysqli_query($koneksi, "SELECT * FROM user");
-                        while ($u = mysqli_fetch_assoc($users)) :
-                        ?>
-                            <option value="<?= $u['iduser']; ?>"><?= $u['username']; ?></option>
-                        <?php endwhile; ?>
-                    </select>
-                </div>
-                <?php endif; ?>
-
-                <?php if ($edit_data): ?>
-                    <button type="submit" name="update" class="btn btn-warning">Update Margin</button>
-                    <a href="margin.php" class="btn btn-secondary">Batal</a>
-                <?php else: ?>
-                    <button type="submit" name="simpan" class="btn btn-primary">Tambah Margin</button>
-                <?php endif; ?>
-            </form>
-        </div>
+            <div class="menu-header">Transaksi & Logic</div>
+            <li><a href="penjualan.php"> Input Penjualan (SP)</a></li>
+            <li><a href="function_omset.php"> Laporan Omset (Function)</a></li>
+            <li><a href="trigger_stok.php"> Log Kartu Stok (Trigger)</a></li>
+            
+            <div class="menu-header">Laporan</div>
+            <li><a href="views.php"> 15 View Laporan</a></li>
+        </ul>
     </div>
 
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Persen Margin</th>
-                <th>Status</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php
-            $no = 1;
-            $data = mysqli_query($koneksi, "SELECT * FROM v_margin");
-            while ($row = mysqli_fetch_assoc($data)) :
-            ?>
-            <tr>
-                <td><?= $no++; ?></td>
-                <td><?= $row['persen']; ?>%</td>
-                <td><?= $row['status'] == 1 ? 'Aktif' : 'Non-Aktif'; ?></td>
-                <td>
-                    <a href="margin.php?action=edit&id=<?= $row['idmargin_penjualan']; ?>" class="btn btn-sm btn-warning">Edit</a>
-                    <a href="margin.php?action=hapus&id=<?= $row['idmargin_penjualan']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus?')">Hapus</a>
-                </td>
-            </tr>
-            <?php endwhile; ?>
-        </tbody>
-    </table>
+    <div class="content">
+        <h1>Data Master Margin Penjualan (Margin 20%)</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%;">No</th>
+                    <th style="width: 35%;">Persen Margin</th>
+                    <th style="width: 30%;">Dibuat Oleh</th>
+                    <th style="width: 20%;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php 
+                $no = 1;
+                while ($row = mysqli_fetch_assoc($query_margin)): 
+                    $dibuat_oleh = $row['dibuat_oleh'] ?? '-';
+                ?>
+                <tr>
+                    <td><?= $no++; ?></td>
+                    <td><strong><?= htmlspecialchars($row['persen']); ?>%</strong></td>
+                    <td><?= htmlspecialchars($dibuat_oleh); ?></td>
+                    <td><span class="badge">Aktif</span></td>
+                </tr>
+                <?php endwhile; ?>
+            </tbody>
+        </table>
+    </div>
 
 </body>
 </html>
