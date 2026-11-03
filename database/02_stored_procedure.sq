@@ -1,0 +1,25 @@
+USE db_uts_2;
+
+DROP PROCEDURE IF EXISTS sp_tambah_penjualan;
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_tambah_penjualan(
+    IN p_subtotal INT,
+    IN p_iduser INT,
+    IN p_idmargin INT
+)
+BEGIN
+    DECLARE v_ppn INT;
+    DECLARE v_total INT;
+
+    SET v_ppn = ROUND(p_subtotal * 0.11);
+    SET v_total = p_subtotal + v_ppn;
+
+    INSERT INTO penjualan (created_at, subtotal_nilai, ppn, total_nilai, iduser, idmargin_penjualan)
+    VALUES (NOW(), p_subtotal, v_ppn, v_total, p_iduser, p_idmargin);
+
+    SELECT LAST_INSERT_ID() AS idpenjualan_baru;
+END$$
+
+DELIMITER ;
