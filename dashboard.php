@@ -1,112 +1,106 @@
 <?php
 include 'koneksi.php';
 
-// Menghitung ringkasan data master
+// Mengambil jumlah total data dari database untuk statistik di dashboard
+$total_role   = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM role"));
+$total_user   = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM user"));
 $total_barang = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM barang"));
 $total_vendor = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM vendor"));
-$total_user   = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM user"));
+$total_jual   = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM penjualan"));
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Sistem Informasi Penjualan & Pengadaan</title>
-    <!-- Bootstrap CSS CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome Icon CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Dashboard Pink - Sistem Informasi Penjualan (db_uts_2)</title>
     <style>
-        body { background-color: #f8f9fa; }
-        .sidebar { min-height: 100vh; background-color: #2c3e50; }
-        .sidebar a { color: #bdc3c7; text-decoration: none; display: block; padding: 12px 20px; }
-        .sidebar a:hover, .sidebar a.active { background-color: #34495e; color: #fff; }
-        .card-box { border-radius: 10px; color: #fff; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        body { display: flex; min-height: 100vh; background-color: #fcf4f7; }
+        
+        /* SIDEBAR PINK TEMA */
+        .sidebar { width: 250px; background-color: #d81b60; color: #fff; padding: 20px 0; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar h2 { text-align: center; font-size: 20px; margin-bottom: 25px; color: #fff; font-weight: bold; letter-spacing: 1px; }
+        .sidebar ul { list-style: none; }
+        .sidebar ul li a { display: block; padding: 12px 20px; color: #f8bbd0; text-decoration: none; font-size: 14px; border-bottom: 1px solid #e91e63; transition: 0.3s; }
+        .sidebar ul li a:hover { background-color: #c2185b; color: #fff; padding-left: 25px; }
+        .sidebar .menu-header { padding: 12px 20px 5px; font-size: 11px; text-transform: uppercase; color: #f48fb1; font-weight: bold; }
+
+        /* KONTEN UTAMA */
+        .content { flex: 1; padding: 30px; }
+        .header-title { margin-bottom: 25px; }
+        .header-title h1 { font-size: 26px; color: #880e4f; }
+        .header-title p { color: #ad1457; font-size: 14px; }
+
+        /* KARTU STATISTIK PINK */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(216, 27, 96, 0.08); border-left: 5px solid #ec407a; }
+        .card h4 { font-size: 12px; color: #ad1457; text-transform: uppercase; margin-bottom: 10px; }
+        .card .value { font-size: 24px; font-weight: bold; color: #880e4f; }
+
+        /* PANEL DESKRIPSI */
+        .panel { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(216, 27, 96, 0.08); border: 1px solid #f8bbd0; }
+        .panel h3 { margin-bottom: 15px; color: #880e4f; font-size: 18px; }
+        .panel p { font-size: 14px; color: #4a148c; line-height: 1.6; }
     </style>
 </head>
 <body>
 
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar Menu Navigasi -->
-        <nav class="col-md-2 d-none d-md-block sidebar p-0">
-            <div class="p-3 text-white text-center fw-bold fs-5 border-bottom border-secondary">
-                <i class="fa-solid fa-store me-2"></i>POS & Inventory
-            </div>
-            <div class="mt-3">
-                <a href="dashboard.php" class="active"><i class="fa-solid fa-gauge me-2"></i> Dashboard</a>
-                <div class="text-secondary ps-3 my-2 small text-uppercase fw-bold">Master Data</div>
-                <a href="role.php"><i class="fa-solid fa-user-shield me-2"></i> Data Role</a>
-                <a href="user.php"><i class="fa-solid fa-users me-2"></i> Data User</a>
-                <a href="satuan.php"><i class="fa-solid fa-boxes-packing me-2"></i> Data Satuan</a>
-                <a href="barang.php"><i class="fa-solid fa-box me-2"></i> Data Barang</a>
-                <a href="vendor.php"><i class="fa-solid fa-truck-field me-2"></i> Data Vendor</a>
-                <a href="margin.php"><i class="fa-solid fa-percent me-2"></i> Margin Penjualan</a>
-                <div class="text-secondary ps-3 my-2 small text-uppercase fw-bold">Transaksi</div>
-                <a href="pengadaan.php"><i class="fa-solid fa-cart-shopping me-2"></i> Pengadaan</a>
-                <a href="penerimaan.php"><i class="fa-solid fa-boxes-stacked me-2"></i> Penerimaan</a>
-                <a href="penjualan.php"><i class="fa-solid fa-cash-register me-2"></i> Penjualan</a>
-                <a href="retur.php"><i class="fa-solid fa-rotate-left me-2"></i> Retur Barang</a>
-                <a href="kartu_stok.php"><i class="fa-solid fa-clipboard-list me-2"></i> Kartu Stok</a>
-            </div>
-        </nav>
+    <!-- SIDEBAR NAVIGASI TEMA PINK -->
+    <div class="sidebar">
+        <h2>PBD PROJECT</h2>
+        <ul>
+            <li><a href="dashboard.php" style="background-color: #c2185b; color: #fff;"> Dashboard</a></li>
+            
+            <div class="menu-header">Data Master</div>
+            <li><a href="role.php"> Data Role</a></li>
+            <li><a href="user.php"> Data User</a></li>
+            <li><a href="satuan.php"> Data Satuan</a></li>
+            <li><a href="vendor.php"> Data Vendor</a></li>
+            <li><a href="barang.php"> Data Barang</a></li>
+            <li><a href="margin.php"> Data Margin</a></li>
 
-        <!-- Main Content Area -->
-        <main class="col-md-10 ms-sm-auto p-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-2 pb-2 mb-4 border-bottom">
-                <h1 class="h2">Dashboard Utama</h1>
-                <span class="badge bg-primary fs-6">Sistem Informasi Aktif</span>
-            </div>
-
-            <!-- Card Info / Stat Summary -->
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <div class="card card-box bg-primary p-3 shadow-sm">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5>Total Barang</h5>
-                                <h2><?= $total_barang; ?></h2>
-                            </div>
-                            <i class="fa-solid fa-box fa-3x opacity-50"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="card card-box bg-success p-3 shadow-sm">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5>Total Vendor</h5>
-                                <h2><?= $total_vendor; ?></h2>
-                            </div>
-                            <i class="fa-solid fa-truck-field fa-3x opacity-50"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="card card-box bg-warning text-dark p-3 shadow-sm">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5>Total User</h5>
-                                <h2><?= $total_user; ?></h2>
-                            </div>
-                            <i class="fa-solid fa-users fa-3x opacity-50"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Selamat Datang Box -->
-            <div class="card mt-3 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title fw-bold">Selamat Datang di Proyek PBD!</h5>
-                    <p class="card-text text-muted">Gunakan menu di sebelah kiri untuk mengelola master data (Role, User, Barang, Vendor, Margin) serta melakukan transaksi Pengadaan, Penerimaan, Penjualan, dan Kartu Stok.</p>
-                </div>
-            </div>
-        </main>
+            <div class="menu-header">Transaksi & Logic</div>
+            <li><a href="penjualan.php"> Input Penjualan (SP)</a></li>
+            
+            <div class="menu-header">Laporan</div>
+            <li><a href="views.php"> 15 View Laporan</a></li>
+        </ul>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- KONTEN UTAMA -->
+    <div class="content">
+        <div class="header-title">
+            <h1>Dashboard Utama</h1>
+            <p>Sistem Pengelolaan Database <code>db_uts_2</code></p>
+        </div>
+
+        <!-- STATISTIK KARTU PINK -->
+        <div class="card-grid">
+            <div class="card" style="border-left-color: #ec407a;">
+                <h4>Total User</h4>
+                <div class="value"><?php echo $total_user; ?></div>
+            </div>
+            <div class="card" style="border-left-color: #f06292;">
+                <h4>Total Barang</h4>
+                <div class="value"><?php echo $total_barang; ?></div>
+            </div>
+            <div class="card" style="border-left-color: #ff80ab;">
+                <h4>Total Vendor</h4>
+                <div class="value"><?php echo $total_vendor; ?></div>
+            </div>
+            <div class="card" style="border-left-color: #ff4081;">
+                <h4>Total Transaksi Penjualan</h4>
+                <div class="value"><?php echo $total_jual; ?></div>
+            </div>
+        </div>
+
+        <!-- INFORMASI SISTEM -->
+        <div class="panel">
+            <h3>Selamat Datang di Sistem Informasi Penjualan</h3>
+            <p>Aplikasi antarmuka ini terhubung langsung dengan basis data MySQL <strong>db_uts_2</strong>. Gunakan menu di sebelah kiri untuk mengelola data master, menjalankan <em>Stored Procedure</em> transaksi penjualan, dan melihat 15 rekap tampilan data (<em>View</em>).</p>
+        </div>
+    </div>
+
 </body>
 </html>
