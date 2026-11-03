@@ -7,6 +7,12 @@ $total_user   = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM user"));
 $total_barang = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM barang"));
 $total_vendor = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM vendor"));
 $total_jual   = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM penjualan"));
+
+// Mengambil statistik tambahan dari Stored Function dan Trigger
+$q_function   = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT SUM(f_hitung_total_penjualan(iduser)) AS total_omset FROM user"));
+$total_omset  = $q_function['total_omset'] ?? 0;
+
+$total_stok_log = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM kartu_stok"));
 ?>
 
 <!DOCTYPE html>
@@ -36,7 +42,7 @@ $total_jual   = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM penjualan"
         .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(216, 27, 96, 0.08); border-left: 5px solid #ec407a; }
         .card h4 { font-size: 12px; color: #ad1457; text-transform: uppercase; margin-bottom: 10px; }
-        .card .value { font-size: 24px; font-weight: bold; color: #880e4f; }
+        .card .value { font-size: 22px; font-weight: bold; color: #880e4f; }
 
         /* PANEL DESKRIPSI */
         .panel { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(216, 27, 96, 0.08); border: 1px solid #f8bbd0; }
@@ -62,6 +68,8 @@ $total_jual   = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM penjualan"
 
             <div class="menu-header">Transaksi & Logic</div>
             <li><a href="penjualan.php"> Input Penjualan (SP)</a></li>
+            <li><a href="function_omset.php"> Laporan Omset (Function)</a></li>
+            <li><a href="trigger_stok.php"> Log Kartu Stok (Trigger)</a></li>
             
             <div class="menu-header">Laporan</div>
             <li><a href="views.php"> 15 View Laporan</a></li>
@@ -93,12 +101,21 @@ $total_jual   = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM penjualan"
                 <h4>Total Transaksi Penjualan</h4>
                 <div class="value"><?php echo $total_jual; ?></div>
             </div>
+            <!-- WIDGET TAMBAHAN FUNCTION & TRIGGER -->
+            <div class="card" style="border-left-color: #d81b60;">
+                <h4>Total Omset (Function)</h4>
+                <div class="value">Rp <?php echo number_format($total_omset, 0, ',', '.'); ?></div>
+            </div>
+            <div class="card" style="border-left-color: #c2185b;">
+                <h4>Log Stok (Trigger)</h4>
+                <div class="value"><?php echo $total_stok_log; ?> Data</div>
+            </div>
         </div>
 
         <!-- INFORMASI SISTEM -->
         <div class="panel">
             <h3>Selamat Datang di Sistem Informasi Penjualan</h3>
-            <p>Aplikasi antarmuka ini terhubung langsung dengan basis data MySQL <strong>db_uts_2</strong>. Gunakan menu di sebelah kiri untuk mengelola data master, menjalankan <em>Stored Procedure</em> transaksi penjualan, dan melihat 15 rekap tampilan data (<em>View</em>).</p>
+            <p>Aplikasi antarmuka ini terhubung langsung dengan basis data MySQL <strong>db_uts_2</strong>. Gunakan menu di sebelah kiri untuk mengelola data master, menjalankan <em>Stored Procedure</em> transaksi penjualan, menguji <em>Stored Function</em> omset, memantau <em>Trigger</em> kartu stok otomatis, serta melihat 15 rekap tampilan data (<em>View</em>).</p>
         </div>
     </div>
 
